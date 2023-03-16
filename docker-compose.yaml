@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      target: "development"
+    volumes:
+      - ./app:/app
+      - ../users_db:/users_db
+    ports:
+      - 8008:8000
+    environment:
+      - DB_HOST=${DB_HOST:-db}
+      - DB_USER=${DB_USER:-users_db}
+      - DB_PASSWORD=${DB_PASSWORD:-users_db}
+      - DB_NAME=${DB_NAME:-users_db}
+    depends_on:
+      - db
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=${DB_USER:-users_db} # superuser
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-users_db} # superuser password 
+      - POSTGRES_DB=${DB_NAME:-users_db} # default database, if not specified POSTGRES_USER will be used
+
+volumes:
+  postgres_data:
