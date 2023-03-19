@@ -6,7 +6,7 @@ services:
       context: .
       target: "development"
     volumes:
-      - ./app:/app
+      - ./users_api:/users_api
       - ../users_db:/users_db
     ports:
       - 8008:8000

@@ -1,9 +1,10 @@
 FROM python:3.10-slim-buster AS base
 
 # copy project
-RUN mkdir /app
-COPY ./app /app/
+RUN mkdir /users_api
+COPY ./users_api /users_api/
 COPY ./pyproject.toml /
+COPY ./README.md /
 COPY ./poetry.lock /
 
 # set env variables
@@ -14,9 +15,10 @@ ENV PYTHONUNBUFFERED 1
 RUN pip install poetry==1.4.0
 RUN poetry export -f requirements.txt --output requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -e .
 
 # set work directory
-WORKDIR /app
+WORKDIR /users_api
 
 # idea to separate development and production stages using multi-stage builds
 # seen from: https://blog.atulr.com/docker-local-production-image/
@@ -26,8 +28,8 @@ FROM base AS development
 # the server automatically
 
 CMD ["/bin/bash", "-c",  \
-     "/app/migrate.sh && \
-      /app/editable_install.sh && \
+     "/users_api/migrate.sh && \
+      /users_api/editable_install.sh && \
       uvicorn app:app --host 0.0.0.0 --reload" ]
 
 FROM base AS production
