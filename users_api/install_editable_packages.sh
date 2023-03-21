@@ -4,5 +4,5 @@
 # because the code is mounted as a volume in docker-compose file.
 
 if [ -d /users_db ]
-    then pip install -e /users_db
+    then pip install -e /users_db --no-deps;
 fi;

@@ -3,6 +3,7 @@ FROM python:3.10-slim-buster AS base
 # copy project
 RUN mkdir /users_api
 COPY ./users_api /users_api/
+COPY ./tests /tests/
 COPY ./pyproject.toml /
 COPY ./README.md /
 COPY ./poetry.lock /
@@ -29,7 +30,7 @@ FROM base AS development
 
 CMD ["/bin/bash", "-c",  \
      "/users_api/migrate.sh && \
-      /users_api/editable_install.sh && \
+      /users_api/install_editable_packages.sh && \
       uvicorn app:app --host 0.0.0.0 --reload" ]
 
 FROM base AS production

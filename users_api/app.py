@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-from routers import users
+from users_api.routers import users
 
 logger = logging.getLogger(__name__)
 

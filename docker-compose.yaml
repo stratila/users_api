@@ -7,6 +7,7 @@ services:
       target: "development"
     volumes:
       - ./users_api:/users_api
+      - ./tests:/tests
       - ../users_db:/users_db
     ports:
       - 8008:8000
