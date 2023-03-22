@@ -23,7 +23,7 @@ steps:
     createdb $TESTDB --username=$POSTGRES_USER;
     pg_restore --format=c --schema-only --dbname=$TESTDB --username=$POSTGRES_USER /var/tmp/schema.sql
 - name: 'gcr.io/cloud-builders/docker'
-    args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
+  args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
   
 
 #- name: 'gcr.io/cloud-builders/docker'
