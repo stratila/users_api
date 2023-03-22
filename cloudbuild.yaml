@@ -11,7 +11,7 @@ steps:
   - docker-compose.yaml
   - up
   - exec
-  - T
+  - -T
   - -e
   - TESTDB=testdb
   - -e
