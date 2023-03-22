@@ -12,7 +12,6 @@ steps:
   - -T
   - -e
   - TESTDB=testdb
-  - -e
   - db
   - sh
   - -c
