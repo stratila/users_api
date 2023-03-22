@@ -9,10 +9,11 @@ steps:
   - -f
   - docker-compose.yaml
   - exec
+  - --no-TTY
   - -e
   - TESTDB=testdb
   - db
-  - /bin/bash
+  - /bin/sh
   - -c
   - |
     ps -ef | grep postgres;
@@ -21,6 +22,22 @@ steps:
     dropdb $$TESTDB --if-exists --username=$$POSTGRES_USER;
     createdb $$TESTDB --username=$$POSTGRES_USER;
     pg_restore --format=c --schema-only --dbname=$$TESTDB --username=$$POSTGRES_USER /var/tmp/schema.sql
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - compose
+  - exec
+  - -f
+  - docker-compose.yaml
+  - --no-TTY
+  - --workdir
+  - /tests
+  - -e
+  - DB_NAME=testdb
+  - web
+  - /bin/sh
+  - -c
+  - |
+    python3 -m pytest -vvv
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
   
