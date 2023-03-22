@@ -4,7 +4,6 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'up', '--detach']
 - name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
   args: 
   - compose
   - -f
