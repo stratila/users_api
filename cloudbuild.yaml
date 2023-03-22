@@ -9,13 +9,13 @@ steps:
   - -f
   - docker-compose.yaml
   - exec
-  - -T
   - -e
   - TESTDB=testdb
   - db
   - /bin/sh
   - -c
   - |
+    ps -ef | grep postgres;
     pg_dump --format=c --schema-only $$POSTGRES_DB --username=$$POSTGRES_USER > /var/tmp/schema.sql
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
