@@ -4,25 +4,6 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'up', '--detach']
 - name: 'gcr.io/cloud-builders/docker'
-  args: 
-  - compose
-  - -f
-  - docker-compose.yaml
-  - exec
-  - --no-TTY
-  - -e
-  - TESTDB=testdb
-  - db
-  - /bin/sh
-  - -c
-  - |
-    ps -ef | grep postgres;
-    until pg_isready ; do sleep 5 ; done;
-    pg_dump --format=c --schema-only $$POSTGRES_DB --username=$$POSTGRES_USER > /var/tmp/schema.sql;
-    dropdb $$TESTDB --if-exists --username=$$POSTGRES_USER;
-    createdb $$TESTDB --username=$$POSTGRES_USER;
-    pg_restore --format=c --schema-only --dbname=$$TESTDB --username=$$POSTGRES_USER /var/tmp/schema.sql
-- name: 'gcr.io/cloud-builders/docker'
   args:
   - compose
   - -f
@@ -31,8 +12,6 @@ steps:
   - --no-TTY
   - --workdir
   - /tests
-  - -e
-  - DB_NAME=testdb
   - web
   - /bin/sh
   - -c
