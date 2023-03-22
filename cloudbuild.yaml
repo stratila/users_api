@@ -12,11 +12,15 @@ steps:
   - -e
   - TESTDB=testdb
   - db
-  - /bin/sh
+  - /bin/bash
   - -c
   - |
     ps -ef | grep postgres;
-    pg_dump --format=c --schema-only $$POSTGRES_DB --username=$$POSTGRES_USER > /var/tmp/schema.sql
+    until pg_isready ; do sleep 5 ; done;
+    pg_dump --format=c --schema-only $$POSTGRES_DB --username=$$POSTGRES_USER > /var/tmp/schema.sql;
+    dropdb $$TESTDB --if-exists --username=$$POSTGRES_USER;
+    createdb $$TESTDB --username=$$POSTGRES_USER;
+    pg_restore --format=c --schema-only --dbname=$$TESTDB --username=$$POSTGRES_USER /var/tmp/schema.sql
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
   
@@ -25,7 +29,3 @@ steps:
 #  args: [ 'push', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA' ]
 #images:
 #- 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA'
-#
-#dropdb $$TESTDB --if-exists --username=$$POSTGRES_USER;
-    #createdb $$TESTDB --username=$$POSTGRES_USER;
-    #pg_restore --format=c --schema-only --dbname=$$TESTDB --username=$$POSTGRES_USER /var/tmp/schema.sql'
