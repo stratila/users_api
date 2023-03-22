@@ -1,0 +1,32 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA', '.' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['compose', '-f', 'docker-compose.yaml', 'up', '--detach']
+- name: 'gcr.io/cloud-builders/docker'
+  env: ["TESTDB=testdb"]
+  args: 
+  - compose
+  - -f
+  - docker-compose.yaml
+  - up
+  - exec
+  - T
+  - -e
+  - TESTDB=$TESTDB
+  - db
+  - sh
+  - -c
+  - |
+    pg_dump --format=c --schema-only $POSTGRES_DB --username=$POSTGRES_USER > /var/tmp/schema.sql;
+    dropdb $TESTDB --if-exists --username=$POSTGRES_USER;
+    createdb $TESTDB --username=$POSTGRES_USER;
+    pg_restore --format=c --schema-only --dbname=$TESTDB --username=$POSTGRES_USER /var/tmp/schema.sql
+- name: 'gcr.io/cloud-builders/docker'
+    args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
+  
+
+#- name: 'gcr.io/cloud-builders/docker'
+#  args: [ 'push', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA' ]
+#images:
+#- 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA'
