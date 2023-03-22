@@ -25,9 +25,9 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args:
   - compose
-  - exec
   - -f
   - docker-compose.yaml
+  - exec
   - --no-TTY
   - --workdir
   - /tests
