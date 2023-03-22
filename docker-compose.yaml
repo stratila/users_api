@@ -33,5 +33,5 @@ volumes:
   postgres_data:
 
 networks:
-  default:
-    name: cloudbuild
+  cloudbuild:
+    external: true
