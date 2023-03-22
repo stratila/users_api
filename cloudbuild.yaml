@@ -14,14 +14,15 @@ steps:
   - T
   - -e
   - TESTDB=testdb
+  - -e
   - db
   - sh
   - -c
   - |
-    pg_dump --format=c --schema-only $POSTGRES_DB --username=$POSTGRES_USER > /var/tmp/schema.sql;
-    dropdb $TESTDB --if-exists --username=$POSTGRES_USER;
-    createdb $TESTDB --username=$POSTGRES_USER;
-    pg_restore --format=c --schema-only --dbname=$TESTDB --username=$POSTGRES_USER /var/tmp/schema.sql
+    pg_dump --format=c --schema-only $$POSTGRES_DB --username=$$POSTGRES_USER > /var/tmp/schema.sql;
+    dropdb $$TESTDB --if-exists --username=$$POSTGRES_USER;
+    createdb $$TESTDB --username=$$POSTGRES_USER;
+    pg_restore --format=c --schema-only --dbname=$$TESTDB --username=$$POSTGRES_USER /var/tmp/schema.sql
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
   
