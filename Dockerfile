@@ -1,9 +1,11 @@
 FROM python:3.10-slim-buster AS base
 
+
 # copy project
 RUN mkdir /users_api
 COPY ./users_api /users_api/
 COPY ./tests /tests/
+COPY ./scripts /scripts/
 COPY ./pyproject.toml /
 COPY ./README.md /
 COPY ./poetry.lock /
@@ -29,8 +31,8 @@ FROM base AS development
 # the server automatically
 
 CMD ["/bin/bash", "-c",  \
-     "/users_api/migrate.sh && \
-      /users_api/install_editable_packages.sh && \
+     "/scripts/migrate.sh && \
+      /scripts/install_editable_packages.sh && \
       uvicorn app:app --host 0.0.0.0 --reload" ]
 
 FROM base AS production

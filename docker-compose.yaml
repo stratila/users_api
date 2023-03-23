@@ -8,6 +8,7 @@ services:
     volumes:
       - ./users_api:/users_api
       - ./tests:/tests
+      - ./scripts:/scripts
       - ../users_db:/users_db
     ports:
       - 8008:8000
