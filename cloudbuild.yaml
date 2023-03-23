@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '--target', '"production"', '--tag', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA', '.' ]
+  args: [ 'build', '--target', 'production', '--tag', 'gcr.io/$PROJECT_ID/my-image:$COMMIT_SHA', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
   args: ['compose', '-f', 'docker-compose.yaml', 'up', '--detach']
 - name: 'gcr.io/cloud-builders/docker'
