@@ -17,5 +17,5 @@ docker compose exec --no-TTY -e TESTDB=$TESTDB db sh -c '
 '
 
 # run tests
-docker compose exec --no-TTY --workdir /tests -e DB_NAME=testdb web sh -c 'python3 -m pytest -vvv'
+docker compose exec --no-TTY --workdir /tests -e DB_NAME=testdb web sh -c 'pytest --cov=/users_api --cov-report=html -vvv'
 
