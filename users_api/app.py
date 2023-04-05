@@ -1,10 +1,11 @@
 import logging
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-from users_api.routers import users
+from users_api.routers import auth, users
+from users_api.security.authentication import JWTBearer
 
 logger = logging.getLogger(__name__)
 
@@ -21,4 +22,7 @@ async def internal_exception_handler(request: Request, exc: Exception):
     )
 
 
-app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(
+    users.router, prefix="/users", tags=["users"], dependencies=[Depends(JWTBearer())]
+)

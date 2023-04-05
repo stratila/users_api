@@ -27,12 +27,13 @@ WORKDIR /users_api
 # seen from: https://blog.atulr.com/docker-local-production-image/
 FROM base AS development
 
-# runs migrations and starts server with reload option to detect changes and restart 
-# the server automatically
+# installs editable packages to code in users_db package to be up to date
+# runs migrations and starts server with reload option to detect changes 
+# and restart the server automatically
 
 CMD ["/bin/bash", "-c",  \
-     "/scripts/migrate.sh && \
-      /scripts/install_editable_packages.sh && \
+     "/scripts/install_editable_packages.sh && \
+      /scripts/migrate.sh && \
       uvicorn app:app --host 0.0.0.0 --reload" ]
 
 FROM base AS production
