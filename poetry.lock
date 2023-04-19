@@ -1064,14 +1064,14 @@ files = [
 
 [[package]]
 name = "users-db"
-version = "0.0.11"
+version = "0.0.12"
 description = "user_db is a database package for user CRUD operations"
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "users_db-0.0.11-py3-none-any.whl", hash = "sha256:4bbc994f194050718a01bc31c7b0c5c5fd3d2602434a01d31f2540e96169e312"},
-    {file = "users_db-0.0.11.tar.gz", hash = "sha256:4a2ecd35e7ea15c35a8c9281545adaa60052d8e795d337e52ee5b9f2436bb992"},
+    {file = "users_db-0.0.12-py3-none-any.whl", hash = "sha256:69d65f15f54a312815a40e61917a1eead816247a3cb137ae1ba62f672ac575e0"},
+    {file = "users_db-0.0.12.tar.gz", hash = "sha256:9b5c4d37b6f502a3cfd430e3df4fa115eade6601f09738cbef2271b232e82610"},
 ]
 
 [package.dependencies]
@@ -1106,4 +1106,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5d748c76f9de4c246378d0845f49539fe674c28032109c5d93fd277ee5c55442"
+content-hash = "4ecd8c994a6091f87cbe71388fac18f1aaae1735906289301069cdfa6c172f38"
