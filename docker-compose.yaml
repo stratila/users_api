@@ -36,3 +36,8 @@ services:
 
 volumes:
   postgres_data:
+
+
+networks:
+  cloudbuild:
+    external: true
