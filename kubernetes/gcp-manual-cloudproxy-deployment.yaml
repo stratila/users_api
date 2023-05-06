@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api-deployment
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: users-api
+      type: manual
+  template:
+    metadata:
+      labels:
+        app: users-api
+        type: manual
+    spec:
+      containers:
+      - name: users-api
+        imagePullPolicy: Always
+        image: us-central1-docker.pkg.dev/modular-granite-374519/users-docker-repo/users-api:manual_2
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+          # The API configuration
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: users-api-secrets
+              key: jwt-secret-key
+        - name: JWT_ALGORITHM
+          valueFrom:
+            configMapKeyRef:
+              name: users-api-config
+              key: jwt-algorithm
+        - name: ACCESS_TOKEN_EXPIRE_MINUTES
+          valueFrom:
+            configMapKeyRef:
+              name: users-api-config
+              key: access-token-expire-minutes
+          # The database configuration. Values are read by users_db package.
+        - name: DB_HOST
+          # SQL Auth Proxy makes the database available on localhost, but we will
+          # use ConfigMap to store the value of host in order not to hardcode it.
+          valueFrom:
+            configMapKeyRef:
+              name: database-config 
+              key: db-host
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-name
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-password
+      
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.1
+        args:
+          - "--structured-logs"
+          - "--port=5432"
+          - "$(DB_CONNECTION_NAME)"
+          - "--credentials-file=/secrets/service_account.json"
+        env:
+        - name: DB_CONNECTION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: cloud-sql-proxy-config
+              key: connection-name
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets/"
+          readOnly: true
+        securityContext:
+          runAsNonRoot: true
+      
+      volumes:
+      - name: secrets
+        secret:
+          secretName: cloud-sql-proxy-secrets
+        
+
