@@ -1,4 +1,5 @@
 import logging
+import pkg_resources
 
 from fastapi import FastAPI, Request, Depends
 from fastapi.encoders import jsonable_encoder
@@ -58,3 +59,14 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(
     users.router, prefix="/users", tags=["users"], dependencies=[Depends(JWTBearer())]
 )
+
+
+@app.get("/")
+async def info():
+    return {
+        "app": "Users API",
+        "versions": {
+            "users_api": pkg_resources.get_distribution("users-api").version,
+            "users_db": pkg_resources.get_distribution("users-db").version,
+        },
+    }
