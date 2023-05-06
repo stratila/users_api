@@ -37,5 +37,3 @@ options:
   env: 
     - CLOUDSDK_COMPUTE_ZONE=us-central1-c
     - CLOUDSDK_CONTAINER_CLUSTER=user-cluster
-
-https://medium.com/google-cloud/quick-tip-simpler-gke-authentication-from-cloud-build-be418274d36c
