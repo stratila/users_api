@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str
     access_token_expire_minutes: int
+    cors_origins: str = None
 
 
 # JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")

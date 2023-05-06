@@ -24,6 +24,16 @@ def test_get_users(client, users_data):
                 assert user.role == user_data["role"]
 
 
+def test_get_user_me(client, super_admin_data):
+    response = client.get("/users/me")
+    assert response.status_code == 200
+    assert response.json()["first_name"] == super_admin_data["first_name"]
+    assert response.json()["middle_name"] == super_admin_data["middle_name"]
+    assert response.json()["last_name"] == super_admin_data["last_name"]
+    assert response.json()["email"] == super_admin_data["email"]
+    assert response.json()["role"] == super_admin_data["role"]
+
+
 def test_get_user(client, users_data):
     user = users_data["users"]["user_0"]
     response = client.get(f"/users/{user['id']}")
@@ -88,6 +98,22 @@ def test_put_user(client, users_data):
     assert response_user.first_name == "John2"
     assert response_user.middle_name == "Doe2"
     assert response_user.last_name == "Smith2"
+
+
+def test_user_change_itself(client_user, users_data):
+    response = client_user.get("/users/me")
+    user_id = response.json()["id"]
+    assert response.status_code == 200
+    response = client_user.put(f"/users/{user_id}", json={"first_name": "John_edited"})
+    print(response.text)
+    assert response.status_code == 200
+    assert response.json()["first_name"] == "John_edited"
+
+    other_user = users_data["users"]["user_0"]
+    response = client_user.put(
+        f"/users/{other_user['id']}", json={"first_name": "John_edited"}
+    )
+    assert response.status_code == 403
 
 
 def test_delete_user(client):

@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from users_db.users import create_user, delete_user
-from users_db.role_permissions import ROLE_SUPER_ADMIN
+from users_db.role_permissions import ROLE_SUPER_ADMIN, ROLE_USER
 from users_api.utils.read_permissions import read_permissions_from_csv
 from users_api.security.password import get_password_hash
 from users_api.app import app
@@ -24,21 +24,45 @@ def super_admin_password():
 
 
 @pytest.fixture(scope="module")
-def super_admin_bearer(super_admin_password):
+def super_admin_data(super_admin_password):
+    return {
+        "first_name": "Super",
+        "middle_name": "Admin",
+        "last_name": "Test",
+        "email": "SuperAdminTest@test.com",
+        "password": get_password_hash(super_admin_password),
+        "role": ROLE_SUPER_ADMIN,
+    }
+
+
+@pytest.fixture(scope="module")
+def user_password():
+    return "password123"
+
+
+@pytest.fixture(scope="module")
+def user_data(user_password):
+    return {
+        "first_name": "John",
+        "middle_name": "Doe",
+        "last_name": "Smith",
+        "email": "User@test.com",
+        "password": get_password_hash(user_password),
+        "role": ROLE_USER,
+    }
+
+
+@pytest.fixture(scope="module")
+def super_admin_bearer(super_admin_data, super_admin_password):
     super_admin_id = create_user(
-        first_name="Super",
-        middle_name="Admin",
-        last_name="Test",
-        email="SuperAdminTest@test.com",
-        password=get_password_hash(super_admin_password),
-        role=ROLE_SUPER_ADMIN,
+        **super_admin_data,
     )
 
     client = TestClient(app)
     response = client.post(
         "/auth/login",
         json={
-            "email": "SuperAdminTest@test.com",
+            "email": super_admin_data["email"],
             "password": super_admin_password,
         },
     )
@@ -52,8 +76,36 @@ def super_admin_bearer(super_admin_password):
 
 
 @pytest.fixture(scope="module")
+def user_bearer(user_data, user_password):
+    user_id = create_user(
+        **user_data,
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": user_data["email"],
+            "password": user_password,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["access_token"]
+
+    yield response.json()["access_token"]
+
+    delete_user(user_id)
+
+
+@pytest.fixture(scope="module")
 def client(super_admin_bearer):
     return TestClient(app, headers={"Authorization": f"Bearer {super_admin_bearer}"})
+
+
+@pytest.fixture(scope="module")
+def client_user(user_bearer):
+    return TestClient(app, headers={"Authorization": f"Bearer {user_bearer}"})
 
 
 @pytest.fixture(scope="function")
