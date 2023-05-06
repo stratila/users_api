@@ -1,0 +1,41 @@
+steps:
+  # Build an image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '--target', 'production', '--tag', 'gcr.io/$PROJECT_ID/users-api:$COMMIT_SHA', '.' ]
+
+  # Run database migration and tests using docker compose
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['compose', '-f', 'docker-compose.yaml', 'up', '--detach']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['compose', '-f', 'docker-compose.yaml', 'exec', '--no-TTY', '--workdir', '/tests', 'web', '/bin/sh', '-c', '/scripts/migrate.sh; python3 -m pytest -vvv']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
+
+  # Substitute an image value in the deployment manifest
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      sed -i "s|\(image:\).*|\1 gcr.io/$PROJECT_ID/users-api:$_IMAGE_TAG|" kubernetes/gcp-automate-deployment.yaml
+  dir: '.'
+
+  # Applies the deployment manifest to the Kubernetes cluster
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['apply', '-f', 'kubernetes/gcp-automate-deployment.yaml']
+
+  # Applies the service manifest to the Kubernetes cluster
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['apply', '-f', 'kubernetes/gcp-automate-service.yaml']
+  
+  # Waits until the users-api deployment is fully rolled out
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['rollout', 'status', 'deployment/users-api-deployment']
+
+
+options:  
+  env: 
+    - CLOUDSDK_COMPUTE_ZONE=us-central1-c
+    - CLOUDSDK_CONTAINER_CLUSTER=user-cluster
+
+https://medium.com/google-cloud/quick-tip-simpler-gke-authentication-from-cloud-build-be418274d36c
