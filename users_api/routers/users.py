@@ -2,10 +2,11 @@ import logging
 
 from fastapi import APIRouter, Query, Depends
 
-from users_api.security.authorization import Permissions
+from users_api.security.authorization import Permissions, get_current_user
 from users_api.security.password import get_password_hash
 from users_api.schemas.users import UserCreate, UserRead, UserUpdate
 from users_api.errors.users import UserNotFound
+from users_api.utils.users import check_role_updates
 
 from users_db.users import (
     create_user,
@@ -13,6 +14,12 @@ from users_db.users import (
     get_users,
     update_user,
     delete_user,
+)
+
+from users_db.role_permissions import (
+    ROLE_SUPER_ADMIN,
+    ROLE_ADMIN,
+    ROLE_USER,
 )
 
 log = logging.getLogger(__name__)
@@ -30,6 +37,19 @@ def user_post(user: UserCreate):
     user_dict["password"] = get_password_hash(user_dict["password"])
     user_id = create_user(**user_dict)
     return {"id": user_id, **user_dict}
+
+
+@router.get(
+    "/me",
+    dependencies=[Depends(Permissions("read_users"))],
+)
+def user_me_get(current_user: dict = Depends(get_current_user)):
+    # get user id from the token
+    user_id = current_user["user_id"]
+    user = get_user(user_id)
+    if not user:
+        raise UserNotFound(user_id)
+    return user
 
 
 @router.get(
@@ -67,15 +87,25 @@ def users_get(
 @router.put(
     "/{user_id}",
     response_model=UserRead,
+    # Permissions("write_users") automatically applied to a user that is updating
+    # their own account even if they do not have the write_users permission
     dependencies=[Depends(Permissions("write_users"))],
 )
-def user_put(user_id: int, user: UserUpdate):
+def user_put(
+    user_id: int, user: UserUpdate, current_user: dict = Depends(get_current_user)
+):
     # remove None values from user dict
     user_dict = {k: v for k, v in user.dict().items() if v is not None}
 
     # hash password if it is in the user dict
     if "password" in user_dict:
         user_dict["password"] = get_password_hash(user_dict["password"])
+
+    # role update logic
+    # FIXME: if roles are the same not triggering an error
+    # FIXME: ROLE should be in token
+    # if "role" in user_dict:
+    #    check_role_updates(user_id, current_user)
 
     updated_user = update_user(
         user_id,
