@@ -20,7 +20,7 @@ steps:
   args:
     - '-c'
     - |
-      sed -i "s|\(^ *- *name: *users-api$\)|\1\n          image: us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA|" kubernetes/gcp-automate-deployment.yaml
+      sed -i "s|^\(\s*image:\s*\)[^[:space:]:]*$|\1us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA|" kubernetes/gcp-automate-deployment.yaml
   dir: '.'
 
   # Applies the deployment manifest to the Kubernetes cluster

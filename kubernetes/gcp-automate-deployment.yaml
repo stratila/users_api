@@ -19,7 +19,8 @@ spec:
       containers:
       - name: users-api
         imagePullPolicy: Always
-        image: us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA
+        # CloudBuild step will substitute the value of the image
+        image: 
         ports:
         - containerPort: 8000
         readinessProbe:
