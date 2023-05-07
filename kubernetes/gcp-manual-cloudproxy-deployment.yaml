@@ -92,8 +92,8 @@ spec:
         - name: secrets
           mountPath: "/secrets/"
           readOnly: true
-        securityContext:
-          runAsNonRoot: true
+        #securityContext:
+        #  runAsNonRoot: true
       
       volumes:
       - name: secrets
