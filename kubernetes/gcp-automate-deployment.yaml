@@ -19,9 +19,7 @@ spec:
       containers:
       - name: users-api
         imagePullPolicy: Always
-        # Use the sed command in the CloudBuild pipeline to substitute PROJECT_ID and _IMAGE_TAG
-        # sed -i "s|\(image:\).*|\1 gcr.io/$PROJECT_ID/users_api:$_IMAGE_TAG|" deployment.yaml
-        image: gcr.io/$PROJECT_ID/users_api:$_IMAGE_TAG
+        image: us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA
         ports:
         - containerPort: 8000
         readinessProbe:
