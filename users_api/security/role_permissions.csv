@@ -1,0 +1,6 @@
+role,permission
+SUPER_ADMIN,read_users
+SUPER_ADMIN,write_users
+ADMIN,read_users
+ADMIN,write_users
+USER,read_users
