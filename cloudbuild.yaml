@@ -11,4 +11,4 @@ steps:
 images: ['gcr.io/$PROJECT_ID/users_api:$COMMIT_SHA']
 
 options:
-  machineType: 'E2-HIGHMEM-2'
+  machineType: 'n1-standard-2'
