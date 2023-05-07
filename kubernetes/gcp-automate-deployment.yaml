@@ -93,7 +93,7 @@ spec:
           mountPath: "/secrets/"
           readOnly: true
         securityContext:
-          runAsNonRoot: true
+          runAsUser: 65532
       
       volumes:
       - name: secrets
