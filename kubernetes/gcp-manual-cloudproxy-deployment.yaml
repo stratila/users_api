@@ -74,7 +74,6 @@ spec:
             secretKeyRef:
               name: database-credentials 
               key: db-password
-      
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.1
         args:
