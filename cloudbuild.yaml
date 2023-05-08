@@ -25,7 +25,7 @@ steps:
 
   # Applies the deployment manifest to the Kubernetes cluster
 - name: 'gcr.io/cloud-builders/kubectl'
-  args: ['apply', '-f', 'kubernetes/gcp-automate-deployment.yaml']
+  args: ['apply', '-f', 'kubernetes/gcp-automate-cloudproxy-deployment-with-migration.yaml']
 
   # Applies the service manifest to the Kubernetes cluster
 - name: 'gcr.io/cloud-builders/kubectl'
