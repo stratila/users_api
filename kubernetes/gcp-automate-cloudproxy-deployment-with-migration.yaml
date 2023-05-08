@@ -20,6 +20,9 @@ spec:
       - name: users-api-migration
         imagePullPolicy: Always
         image: 
+        command:
+          - /bin/bash
+          - /scripts/migrate.sh
         env:
         - name: JWT_SECRET_KEY
           valueFrom:
@@ -60,9 +63,6 @@ spec:
       - name: users-api
         imagePullPolicy: Always
         image: 
-        command:
-          - /bin/bash
-          - /scripts/migrate.sh
         ports:
         - containerPort: 8000
         readinessProbe:
