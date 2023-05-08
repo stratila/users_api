@@ -19,7 +19,7 @@ spec:
       initContainers:
       - name: users-api-migration
         imagePullPolicy: Always
-        image:
+        image: 
         env:
         - name: JWT_SECRET_KEY
           valueFrom:
