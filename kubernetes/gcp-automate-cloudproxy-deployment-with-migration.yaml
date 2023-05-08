@@ -60,6 +60,9 @@ spec:
       - name: users-api
         imagePullPolicy: Always
         image: 
+        command:
+          - /bin/bash
+          - /scripts/migrate.sh
         ports:
         - containerPort: 8000
         readinessProbe:
