@@ -57,9 +57,9 @@ steps:
   # Create the job
 - name: 'gcr.io/cloud-builders/kubectl'
   id: "create_migration_job"
-  entrypoint:
+  entrypoint: bash
   args:
-  - -c
+  - '-c'
   - |
     kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o json |
     jq -rj .metadata.name > /workspace/users-api-migrate-job.txt &&
@@ -70,7 +70,7 @@ steps:
   id: "wait_migration_job"
   entrypoint: bash
   args:
-  - -c
+  - '-c'
   - |
     kubectl wait --for=condition=complete job/$(cat /workspace/users-api-migrate-job.txt) --timeout=600s
 
@@ -79,7 +79,7 @@ steps:
   id: "check_migration_logs"
   entrypoint: bash
   args:
-  - -c 
+  - '-c' 
   - |
     kubectl logs job/$(cat /workspace/users-api-migrate-job.txt) 
 
