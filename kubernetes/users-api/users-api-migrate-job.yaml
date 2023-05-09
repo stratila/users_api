@@ -1,13 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: users-api-migrate-job
+  generateName: users-api-migrate-job-
+  labels:
+    jobGroup: users-api-migrate-job
 spec:
   backoffLimit: 0
   template:
     metadata:
       labels:
-        app: users-api-migrate-job
+        jobGroup: users-api-migrate-job
     spec:
       restartPolicy: Never
       containers:
