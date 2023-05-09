@@ -37,7 +37,7 @@ steps:
   # Applies the ingress manifest to the Kubernetes cluster
 - name: 'gcr.io/cloud-builders/kubectl'
   id: "apply_ingress"
-  args: ['apply', '-f', 'kubernetes/users-api/users-api-ingress.yamll']
+  args: ['apply', '-f', 'kubernetes/users-api/users-api-ingress.yaml']
 
   # Applies the deployment manifest to the Kubernetes cluster
 - name: 'gcr.io/cloud-builders/kubectl'
