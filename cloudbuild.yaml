@@ -2,6 +2,8 @@ steps:
   # Build an image
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '--target', 'production', '--tag', 'us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA', '.' ]
+
+  # Push an image to the Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'push', 'us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA' ]
 
@@ -14,30 +16,51 @@ steps:
 #- name: 'gcr.io/cloud-builders/docker'
 #  args: ['compose', '-f', 'docker-compose.yaml', 'down' ]
 
-  # Substitute an image value in the deployment manifest
+  # Substitute an image value in the deployment and job manifests
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   args:
     - '-c'
     - |
-      sed -i "s|^\(\s*image:\s*\)[^[:space:]:]*$|\1us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA|" kubernetes/gcp-automate-cloudproxy-deployment-with-migration.yaml
+      sed -i "s|^\(\s*image:\s*\)[^[:space:]:]*$|\1us-central1-docker.pkg.dev/$PROJECT_ID/users-docker-repo/users-api:$COMMIT_SHA|" \
+      kubernetes/users-api/users-api-deployment.yaml kubernetes/users-api/users-api-migrate-job.yaml
   dir: '.'
 
   # Applies the deployment manifest to the Kubernetes cluster
 - name: 'gcr.io/cloud-builders/kubectl'
-  args: ['apply', '-f', 'kubernetes/gcp-automate-cloudproxy-deployment-with-migration.yaml']
+  args: ['apply', '-f', 'kubernetes/users-api/users-api-deployment.yaml']
 
-  # Applies the service manifest to the Kubernetes cluster
+  # Scale down the deployment
 - name: 'gcr.io/cloud-builders/kubectl'
-  args: ['apply', '-f', 'kubernetes/gcp-automate-service.yaml']
-  
+  args: ['scale', 'deployment/users-api-deployment', '--replicas=0']
+
+  # Wait for pods to terminate
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['wait', '--for=delete', 'pods', '--selector=app=users-api,type=auto', '--timeout=300s']
+
+  # Create the job
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'kubernetes/users-api/users-api-migrate-job.yaml']
+
+  # Wait for the job to complete
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['wait', '--for=condition=complete', 'job/users-api-migrate-job', '--timeout=300s']
+
+ # Check migration logs
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['logs', 'job/users-api-migrate-job']
+
+  # Scale up the deployment
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['scale', 'deployment/users-api-deployment', '--replicas=3']
+
+  # Roll out the deployment
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['rollout', 'restart', 'deployment/users-api-deployment']
+
   # Waits until the users-api deployment is fully rolled out
 - name: 'gcr.io/cloud-builders/kubectl'
   args: ['rollout', 'status', 'deployment/users-api-deployment']
-
-  # See the migration logs
-- name: 'gcr.io/cloud-builders/kubectl'
-  args: ['logs', '-l', 'app=users-api', '-c', 'users-api-migration']
 
 options:  
   env: 
