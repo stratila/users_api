@@ -69,4 +69,5 @@ async def info():
             "users_api": pkg_resources.get_distribution("users-api").version,
             "users_db": pkg_resources.get_distribution("users-db").version,
         },
+        "key": "value",
     }
