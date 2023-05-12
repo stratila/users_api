@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from users_db.users import create_user, delete_user
 from users_db.role_permissions import ROLE_SUPER_ADMIN, ROLE_USER
-from users_api.utils.read_permissions import read_permissions_from_csv
+from users_api.utils.handle_permissions import read_permissions_from_csv, update_role_permission_records_with_csv
 from users_api.security.password import get_password_hash
 from users_api.app import app
 
@@ -15,7 +15,10 @@ from users_api.app import app
 def load_permissions():
     """Load permissions from CSV file"""
     path = Path(__file__).parent.parent / "users_api/security/role_permissions.csv"
-    read_permissions_from_csv(path)
+    role_permission_list_csv = read_permissions_from_csv(path)
+    update_role_permission_records_with_csv(role_permission_list_csv, logging_on=False)
+
+
 
 
 @pytest.fixture(scope="module")
