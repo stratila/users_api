@@ -19,15 +19,15 @@ build_image:
     - docker login -u _json_key --password-stdin https://${REGION}-docker.pkg.dev < /tmp/gcp-key.json
     
     # Build the Docker image with Google Artifact Registry format
-    - docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA .
+    #- docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA}
   
     # Tag the Docker image with the "latest" tag
-    - docker tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:latest
+    #- docker tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:latest
     
     # Push the Docker image to the GitLab registry
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA}
-    - docker push $CI_REGISTRY_IMAGE/${REPO_NAME}:latest
   
   tags:
     - docker
@@ -57,7 +57,6 @@ push_image:
     
     # Push the Docker image to GCP Artifact Registry
     - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
-    - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:latest
   
   tags:
     - docker
