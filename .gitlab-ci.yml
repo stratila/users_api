@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - push
 
 build_image:
@@ -17,6 +18,19 @@ build_image:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
   
+  tags:
+    - docker
+
+# Define job for running tests and database migrations
+integration_tests:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose -f docker-compose.yaml up --detach
+    - docker-compose -f docker-compose.yaml exec --no-TTY --workdir /tests web /bin/sh -c "/scripts/migrate.sh; python3 -m pytest -vvv"
+    - docker-compose -f docker-compose.yaml down
   tags:
     - docker
 
