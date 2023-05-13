@@ -5,8 +5,6 @@ stages:
 build_image:
   image: google/cloud-sdk:latest
   stage: build
-  services:
-    - docker:dind
   script:
     # Set environment variables
     - export PROJECT_ID=modular-granite-374519
@@ -28,8 +26,6 @@ build_image:
 push_image:
   image: google/cloud-sdk:latest
   stage: push
-  services:
-    - docker:dind
   script:
     # Set environment variables
     - export PROJECT_ID=modular-granite-374519
