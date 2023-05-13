@@ -8,26 +8,14 @@ build_image:
   services:
     - docker:dind
   script:
-    # Set environment variables
-    - export PROJECT_ID=modular-granite-374519
-    - export REGION=us-central1
-    - export REPO_NAME=users-docker-repo
-    - export IMAGE_TAG=usersapi
-    
-    # Authenticate to GCP Artifact Registry
-    - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
-    - docker login -u _json_key --password-stdin https://${REGION}-docker.pkg.dev < /tmp/gcp-key.json
+    - export IMAGE_TAG=users-api
     
     # Build the Docker image with Google Artifact Registry format
-    #- docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA .
-    - docker build -t $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA}
-  
-    # Tag the Docker image with the "latest" tag
-    #- docker tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:latest
+    - docker build -t $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} .
     
     # Push the Docker image to the GitLab registry
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker push $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA}
+    - docker push $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
   
   tags:
     - docker
@@ -42,7 +30,7 @@ push_image:
     - export PROJECT_ID=modular-granite-374519
     - export REGION=us-central1
     - export REPO_NAME=users-docker-repo
-    - export IMAGE_TAG=usersapi
+    - export IMAGE_TAG=users-api
     
     # Authenticate to GCP Artifact Registry
     - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
@@ -50,10 +38,10 @@ push_image:
     
     # Pull the Docker image from the GitLab registry
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA}
+    - docker pull $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
     
     # Tag the Docker image with the GCP Artifact Registry format
-    - docker tag $CI_REGISTRY_IMAGE/${REPO_NAME}:${CI_COMMIT_SHA} ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
     
     # Push the Docker image to GCP Artifact Registry
     - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
