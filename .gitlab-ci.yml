@@ -1,0 +1,46 @@
+# Define stages
+stages:
+  - build
+  - test
+  - push
+
+# Define job for building the Docker image
+build_image:
+  stage: build
+  image: 
+    - google/cloud-sdk:alpine
+    - docker:latest
+  script:
+    - gcloud auth activate-service-account --key-file <(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
+    - export GOOGLE_PROJECT_ID=$(gcloud config get-value project)
+    - docker build --target production --tag us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/users-docker-repo/users-api:$CI_COMMIT_SHA .
+  tags:
+    - docker
+
+
+# Define job for running tests and database migrations
+test_and_migrate:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose -f docker-compose.yaml up --detach
+    - docker-compose -f docker-compose.yaml exec --no-TTY --workdir /tests web /bin/sh -c "/scripts/migrate.sh; python3 -m pytest -vvv"
+    - docker-compose -f docker-compose.yaml down
+  tags:
+    - docker
+  
+# Define job for pushing the Docker image to the registry
+push_image:
+  stage: push
+  image: docker:latest
+  script:
+    - echo "$GOOGLE_APPLICATION_CREDENTIALS" | docker login -u _json_key_base64 --password-stdin https://us-central1-docker.pkg.dev
+    - gcloud auth activate-service-account --key-file <(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
+    - export GOOGLE_PROJECT_ID=$(gcloud config get-value project)
+    - docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/users-docker-repo/users-api:$CI_COMMIT_SHA
+  tags:
+    - docker
+
+
