@@ -5,8 +5,12 @@ stages:
 build_image:
   image: google/cloud-sdk:latest
   stage: build
+  services:
+    - docker:dind
   script:
     # Set environment variables
+    - docker --version
+    
     - export PROJECT_ID=modular-granite-374519
     - export REGION=us-central1
     - export REPO_NAME=users-docker-repo
@@ -26,6 +30,8 @@ build_image:
 push_image:
   image: google/cloud-sdk:latest
   stage: push
+  services:
+    - docker:dind
   script:
     # Set environment variables
     - export PROJECT_ID=modular-granite-374519
@@ -35,7 +41,7 @@ push_image:
     # Authenticate to GCP Artifact Registry
     - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
     - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-    - gcloud auth configure-docker
+    - gcloud auth configure-docker ${REGION}-docker.pkg.dev
     
     # Push the image to GCP Artifact Registry
     - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
