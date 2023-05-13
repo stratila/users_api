@@ -3,7 +3,7 @@ stages:
   - push
 
 build_image:
-  image: docker:latest
+  image: google/cloud-sdk:latest
   stage: build
   services:
     - docker:dind
@@ -26,7 +26,7 @@ build_image:
     - docker
 
 push_image:
-  image: docker:latest
+  image: google/cloud-sdk:latest
   stage: push
   services:
     - docker:dind
