@@ -6,7 +6,6 @@ from users_api.security.authorization import Permissions, get_current_user
 from users_api.security.password import get_password_hash
 from users_api.schemas.users import UserCreate, UserRead, UserUpdate
 from users_api.errors.users import UserNotFound
-from users_api.utils.users import check_role_updates
 
 from users_db.users import (
     create_user,
@@ -14,12 +13,6 @@ from users_db.users import (
     get_users,
     update_user,
     delete_user,
-)
-
-from users_db.role_permissions import (
-    ROLE_SUPER_ADMIN,
-    ROLE_ADMIN,
-    ROLE_USER,
 )
 
 log = logging.getLogger(__name__)
