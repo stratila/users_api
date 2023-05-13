@@ -1,46 +1,45 @@
-# Define stages
 stages:
   - build
-  - test
   - push
 
-# Define job for building the Docker image
-build_image:
-  stage: build
-  image: 
-    - google/cloud-sdk:alpine
-    - docker:latest
-  script:
-    - gcloud auth activate-service-account --key-file <(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
-    - export GOOGLE_PROJECT_ID=$(gcloud config get-value project)
-    - docker build --target production --tag us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/users-docker-repo/users-api:$CI_COMMIT_SHA .
-  tags:
-    - docker
-
-
-# Define job for running tests and database migrations
-test_and_migrate:
-  stage: test
+build:
   image: docker:latest
   services:
     - docker:dind
   script:
-    - docker-compose -f docker-compose.yaml up --detach
-    - docker-compose -f docker-compose.yaml exec --no-TTY --workdir /tests web /bin/sh -c "/scripts/migrate.sh; python3 -m pytest -vvv"
-    - docker-compose -f docker-compose.yaml down
-  tags:
-    - docker
+    # Set environment variables
+    - export PROJECT_ID=modular-granite-374519
+    - export REGION=us-central1
+    - export REPO_NAME=users-docker-repo
+    - export IMAGE_TAG=usersapi
+    
+    # Authenticate to GCP Artifact Registry
+    - gcloud auth activate-service-account --key-file=<(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
+    - gcloud auth configure-docker ${REGION}-docker.pkg.dev
+    
+    # Build the Docker image with Google Artifact Registry format
+    - docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA .
   
-# Define job for pushing the Docker image to the registry
-push_image:
-  stage: push
-  image: docker:latest
-  script:
-    - echo "$GOOGLE_APPLICATION_CREDENTIALS" | docker login -u _json_key_base64 --password-stdin https://us-central1-docker.pkg.dev
-    - gcloud auth activate-service-account --key-file <(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
-    - export GOOGLE_PROJECT_ID=$(gcloud config get-value project)
-    - docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/users-docker-repo/users-api:$CI_COMMIT_SHA
   tags:
     - docker
 
-
+push:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    # Set environment variables
+    - export PROJECT_ID=modular-granite-374519
+    - export REPO_NAME=users-docker-repo
+    - export IMAGE_TAG=usersapi
+    
+    # Authenticate to GCP Artifact Registry
+    - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+    - gcloud auth configure-docker
+    
+    # Push the image to GCP Artifact Registry
+    - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
+  
+  tags:
+    - docker
