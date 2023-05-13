@@ -10,7 +10,7 @@ build_image:
   script:
     # Set environment variables
     - docker --version
-    
+    - sudo systemctl start docker
     - export PROJECT_ID=modular-granite-374519
     - export REGION=us-central1
     - export REPO_NAME=users-docker-repo
