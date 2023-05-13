@@ -2,8 +2,9 @@ stages:
   - build
   - push
 
-build:
+build_image:
   image: docker:latest
+  stage: build
   services:
     - docker:dind
   script:
@@ -14,7 +15,8 @@ build:
     - export IMAGE_TAG=usersapi
     
     # Authenticate to GCP Artifact Registry
-    - gcloud auth activate-service-account --key-file=<(echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 -d)
+    - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
     - gcloud auth configure-docker ${REGION}-docker.pkg.dev
     
     # Build the Docker image with Google Artifact Registry format
@@ -23,8 +25,9 @@ build:
   tags:
     - docker
 
-push:
+push_image:
   image: docker:latest
+  stage: push
   services:
     - docker:dind
   script:
