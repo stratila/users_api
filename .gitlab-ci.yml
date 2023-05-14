@@ -39,7 +39,7 @@ integration_tests:
     - docker:dind
   script:
     - docker-compose -f docker-compose.yaml up --detach
-    - docker-compose -f docker-compose.yaml exec --no-TTY --workdir /tests web /bin/sh -c "/scripts/migrate.sh; python3 -m pytest -vvv"
+    - docker-compose -f docker-compose.yaml exec --no-TTY --workdir /tests web /bin/sh -c "/scripts/migrate.sh; pytest -vvv"
     - docker-compose -f docker-compose.yaml down
   tags:
     - docker
