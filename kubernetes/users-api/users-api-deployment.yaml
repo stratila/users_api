@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api-deployment
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: users-api
+      type: auto
+  template:
+    metadata:
+      labels:
+        app: users-api
+        type: auto
+    spec:
+      containers:
+      - name: users-api
+        imagePullPolicy: Always
+        image: 
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: users-api-secrets
+              key: jwt-secret-key
+        - name: JWT_ALGORITHM
+          valueFrom:
+            configMapKeyRef:
+              name: users-api-config
+              key: jwt-algorithm
+        - name: ACCESS_TOKEN_EXPIRE_MINUTES
+          valueFrom:
+            configMapKeyRef:
+              name: users-api-config
+              key: access-token-expire-minutes
+        - name: DB_HOST
+          value: cloud-sql-proxy-service
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-name
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials 
+              key: db-password
+      
+      volumes:
+      - name: secrets
+        secret:
+          secretName: cloud-sql-proxy-secrets
+        
+

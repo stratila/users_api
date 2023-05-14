@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres-client
+spec:
+  containers:
+  - name: postgres-client
+    image: postgres:14
+    command: [ "tail", "-f", "/dev/null" ]
+    env:
+    - name: PGHOST
+      valueFrom:
+        configMapKeyRef:
+          name: database-config 
+          key: db-host
+    - name: PGDATABASE
+      valueFrom:
+        secretKeyRef:
+          name: database-credentials 
+          key: db-name
+    - name: PGUSER
+      valueFrom:
+        secretKeyRef:
+          name: database-credentials 
+          key: db-user
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: database-credentials 
+          key: db-password
+
+    
+  - name: cloud-sql-proxy
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.1
+    args:
+      - "--structured-logs"
+      - "--port=5432"
+      - "$(DB_CONNECTION_NAME)"
+      - "--credentials-file=/secrets/service_account.json"
+    env:
+    - name: DB_CONNECTION_NAME
+      valueFrom:
+        configMapKeyRef:
+          name: cloud-sql-proxy-config
+          key: connection-name
+    volumeMounts:
+    - name: secrets
+      mountPath: "/secrets/"
+      readOnly: true
+    securityContext:
+      runAsNonRoot: true
+  
+  volumes:
+  - name: secrets
+    secret:
+      secretName: cloud-sql-proxy-secrets
+
+
+# https://stackoverflow.com/a/72649781
