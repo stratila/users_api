@@ -35,6 +35,7 @@ integration_test:
     POSTGRES_PASSWORD: custom_pass
   script:
     # Pull the Docker image from the GitLab registry
+    - export IMAGE_TAG=users-api
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
     - docker run --rm -e DB_HOST=postgres -e DB_PORT=5432 -e DB_NAME=${POSTGRES_DB} -e DB_USER=${POSTGRES_USER} -e DB_PASS=${POSTGRES_PASSWORD} -e JWT_SECRET_KEY=secret -e JWT_ALGORITHM=HS256 -e ACCESS_TOKEN_EXPIRE_MINUTES=30 $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} /bin/sh -c "/scripts/migrate.sh; pytest -vvv"
