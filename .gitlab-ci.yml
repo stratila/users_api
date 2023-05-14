@@ -36,7 +36,7 @@ integration_test:
     - apk add libffi-dev
     - apk add openssl-dev
     - apk add cargo
-    - service postgresql start
+    - /usr/bin/pg_ctl -D /var/lib/postgresql/data -l /var/log/postgresql/postgresql.log start
     - psql -c "CREATE USER myuser WITH PASSWORD 'mypass';" -U postgres
     - psql -c "CREATE DATABASE mydb WITH OWNER myuser;" -U postgres
   script:
