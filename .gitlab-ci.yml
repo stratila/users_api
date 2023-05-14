@@ -1,16 +1,7 @@
 stages:
-  - stat
   - build
   - test
   - push
-
-shared_runner_stats:
-  stage: stat
-  image: "ubuntu:latest"
-  script:
-    - free -m | grep -v "Swap" # RAM
-    - df -h| grep -E "Filesystem|overlay" # storage
-    - lscpu | grep -E "^CPU\(s\)" # CPUs
 
 
 build_image:
