@@ -28,6 +28,7 @@ integration_test:
   stage: test
   services:
     - postgres:15-alpine
+    - docker:dind
   variables:
     POSTGRES_DB: custom_db
     POSTGRES_USER: custom_user
