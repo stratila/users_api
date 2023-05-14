@@ -2,7 +2,7 @@ stages:
   - build
   - test
   - push
-
+  - deploy
 
 build_image:
   image: docker:stable
@@ -11,14 +11,14 @@ build_image:
     - docker:dind
   script:
     - export IMAGE_TAG=users-api
-    
+
     # Build the Docker image with Google Artifact Registry format
     - docker build -t $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} .
-    
+
     # Push the Docker image to the GitLab registry
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
-  
+
   tags:
     - docker
 
@@ -43,7 +43,6 @@ integration_test:
     - docker pull $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
     - docker run --rm -e DB_HOST=$POSTGRES_PORT_5432_TCP_ADDR -e DB_PORT=5432 -e DB_NAME=$POSTGRES_DB -e DB_USER=$POSTGRES_USER -e DB_PASSWORD=$POSTGRES_PASSWORD -e JWT_SECRET_KEY=secret -e JWT_ALGORITHM=HS256 -e ACCESS_TOKEN_EXPIRE_MINUTES=30 $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} /bin/sh -c "/scripts/migrate.sh && pytest /tests -vvv"
 
-
 push_image:
   image: docker:stable
   stage: push
@@ -55,20 +54,66 @@ push_image:
     - export REGION=us-central1
     - export REPO_NAME=users-docker-repo
     - export IMAGE_TAG=users-api
-    
+
     # Authenticate to GCP Artifact Registry
     - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
     - docker login -u _json_key --password-stdin https://${REGION}-docker.pkg.dev < /tmp/gcp-key.json
-    
+
     # Pull the Docker image from the GitLab registry
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA}
-    
+
     # Tag the Docker image with the GCP Artifact Registry format
     - docker tag $CI_REGISTRY_IMAGE/${IMAGE_TAG}:${CI_COMMIT_SHA} ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
-    
+
     # Push the Docker image to GCP Artifact Registry
     - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_TAG}:$CI_COMMIT_SHA
-  
+
   tags:
     - docker
+
+# Define job for deploying the application
+deploy_image:
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  variables:
+    REGION: us-central1
+    ZONE: us-central1-a
+    IMAGE_TAG: users-api
+    REPO_NAME: users-docker-repo
+    PROJECT_ID: modular-granite-374519
+    CLUSTER_NAME: user-cluster
+  script:
+    # Authenticate to GCP
+    - echo ${GOOGLE_APPLICATION_CREDENTIALS} | base64 -d > /tmp/gcp-key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+    - gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_ID
+
+    # Substitute variables in Kubernetes manifests
+    - sed -i 's|^\(\s*image:\s*\)[^[:space:]:]*$|\1$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_TAG:$CI_COMMIT_SHA|' kubernetes/users-api/users-api-deployment.yaml kubernetes/users-api/users-api-migrate-job.yaml
+
+    # Apply Kubernetes manifests
+    - kubectl apply -f kubernetes/users-api/users-api-service.yaml
+    - kubectl apply -f kubernetes/users-api/users-api-ingress.yaml
+    - kubectl apply -f kubernetes/users-api/users-api-deployment.yaml
+
+    # Scale down the deployment to 0 replicas
+    - kubectl scale deployment/users-api-deployment --replicas=0
+    - kubectl wait --for=delete pods --selector=app=users-api,type=auto --timeout=300s
+
+    # Run database migrations as a Kubernetes job
+    - kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o jsonpath={.metadata.name} > /tmp/users-api-migrate-job.txt
+    - echo "job.batch/$(cat /tmp/users-api-migrate-job.txt) created"
+    - kubectl wait --for=condition=complete job/$(cat /tmp/users-api-migrate-job.txt) --timeout=600s
+    - kubectl logs job/$(cat /tmp/users-api-migrate-job.txt)
+
+    # Scale up the deployment to 3 replicas and continue rollout
+    - kubectl scale deployment/users-api-deployment --replicas=3
+    - kubectl rollout restart deployment/users-api-deployment
+    - kubectl rollout status deployment/users-api-deployment
+
+    # Delete the Kubernetes job
+    - kubectl delete job -l jobGroup=users-api-migrate-job
+
+  tags:
+    - kubernetes
