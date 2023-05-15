@@ -20,7 +20,7 @@ from users_db.users import (
     create_user,
     get_hashed_password_by_email,
 )
-from users_db.users import ROLE_USER
+from users_db.role_permissions import ROLE_USER
 
 router = APIRouter()
 

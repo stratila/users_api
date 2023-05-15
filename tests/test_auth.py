@@ -86,7 +86,7 @@ def test_signup_twice_throws_error(client):
 
     assert response.status_code == 400
     assert (
-        f"User with email example@test.com already exists" in response.json()["detail"]
+        "User with email example@test.com already exists" in response.json()["detail"]
     )
 
     # Clean up
