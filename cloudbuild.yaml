@@ -61,10 +61,8 @@ steps:
   args:
   - '-c'
   - |
-    apt update && apt install jq -y  &&
-    kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o json |
-    jq -rj .metadata.name > /workspace/users-api-migrate-job.txt &&
-    echo "job.batch/$(cat /workspace/users-api-migrate-job.txt ) created"
+    kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o jsonpath={.metadata.name} >
+    /workspace/users-api-migrate-job.txt && echo "job.batch/$(cat /workspace/users-api-migrate-job.txt ) created"
 
   # Wait for the job to complete
 - name: 'gcr.io/cloud-builders/kubectl'
