@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: users-api
-        image: us-central1-docker.pkg.dev/modular-granite-374519/users-docker-repo/users-api:manual_1
+        image: us-central1-docker.pkg.dev/modular-granite-374519/users-docker-repo/users-api:manual_3
         ports:
         - containerPort: 8000
         env:

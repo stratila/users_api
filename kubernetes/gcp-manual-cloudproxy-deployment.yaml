@@ -19,7 +19,7 @@ spec:
       containers:
       - name: users-api
         imagePullPolicy: Always
-        image: us-central1-docker.pkg.dev/modular-granite-374519/users-docker-repo/users-api:manual_2
+        image: us-central1-docker.pkg.dev/modular-granite-374519/users-docker-repo/users-api:manual_3
         ports:
         - containerPort: 8000
         readinessProbe:
@@ -79,6 +79,7 @@ spec:
         args:
           - "--structured-logs"
           - "--port=5432"
+          - "--private-ip"
           - "$(DB_CONNECTION_NAME)"
           - "--credentials-file=/secrets/service_account.json"
         env:
