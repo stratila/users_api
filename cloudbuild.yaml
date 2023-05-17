@@ -61,7 +61,7 @@ steps:
   args:
   - '-c'
   - |
-    kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o jsonpath={.metadata.name} >
+    kubectl create -f kubernetes/users-api/users-api-migrate-job.yaml -o jsonpath={.metadata.name} > \
     /workspace/users-api-migrate-job.txt && echo "job.batch/$(cat /workspace/users-api-migrate-job.txt ) created"
 
   # Wait for the job to complete
